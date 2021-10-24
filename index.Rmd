@@ -1,0 +1,171 @@
+---
+title: "Denuncias ambientales"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r paquetes, warning=FALSE, message=FALSE}
+library (DT)
+library (dplyr)
+library (terra)
+library (raster)
+library (leaflet)
+library (sf)
+library (ggplot2)
+library (plotly)
+```
+
+```{r datos, warning=FALSE, message=FALSE}
+provincias <-
+  st_read(
+    "https://github.com/tpb728O-programaciongeoespacialr/2021ii/raw/main/datos/ign/delimitacion-territorial-administrativa/provincias.geojson",
+    quiet = TRUE
+  )
+```
+
+```{r}
+provincias <-
+  provincias %>%
+  st_transform(4326)
+```
+
+```{r}
+cuencas <-
+  st_read(
+    "https://raw.githubusercontent.com/MaureenArg/datostarea/master/cuencas.geojson",
+    quiet = TRUE
+  )
+```
+
+
+
+```{r}
+altitud <-
+  rast(
+    "/vsicurl/https://raw.githubusercontent.com/tpb728O-programaciongeoespacialr/2021ii/master/datos/worldclim/altitud.tif"
+  )
+```
+
+```{r}
+denu_depu <-
+  st_read(
+    "/vsicurl/https://raw.githubusercontent.com/MaureenArg/datostarea/master/denu_depu.csv",
+    options = c(
+      "X_POSSIBLE_NAMES=decimalLongitude",
+      "Y_POSSIBLE_NAMES=decimalLatitude"
+    ),
+    quiet = TRUE
+  )
+```
+
+
+```{r}
+st_crs (denu_depu) <- 4326
+```
+
+
+```{r}
+denu_depu %>%
+  st_drop_geometry()%>%
+  select (TIPO_den, año, TIPO_inf, CATEGORIA_) %>%
+    datatable (rownames= FALSE, filter= "top", class= "hover cell-border stripe", caption= "Tabla 1: Tipo de denuncias ambientales según año", colnames = c( "Tipo de denuncia", "Año", "Recurso afectado", "Categoría"), options = list (language = "//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json"))
+```
+
+
+
+
+
+extensions = "Buttons", options = list (dom = "Bfrtip", buttons= c("csv", "excel")),
+```{r}
+altitud_rl <- raster(altitud)
+leaflet() %>%
+  addTiles() %>%
+  addRasterImage(
+    altitud_rl, 
+    opacity = 0.6
+  ) %>% 
+   addPolygons(
+    data = cuencas,
+    color = "black",
+    fillColor = "blue",
+    stroke = TRUE,
+    weight = 1.0,
+  ) %>%
+  addCircleMarkers(
+    data = denu_depu,
+    stroke = F,
+    radius = 4,
+    fillColor = 'red',
+    fillOpacity = 1
+  )
+```
+
+#Graficos 
+
+```{r}
+denuncias2021 <-
+read.csv (
+  file= "https://raw.githubusercontent.com/MaureenArg/datostarea/master/denunciasoct23.csv", 
+ sep = ";"
+    )
+```
+
+# Generación de un nuevo data frame
+
+```{r}
+denuncias_anio <-
+  denuncias2021 %>%
+   dplyr::count(anio)
+```
+# Grafico barras
+
+```{r}
+barplot(
+  denuncias_anio$n, 
+  names.arg = denuncias_anio$anio,
+  xlab= "Año",
+  ylab= "Cantidad de denuncias",
+  main = "Cantidad de denuncias ambientales por año en Costa Rica",
+)
+```
+
+
+```{r}
+denuncias_x_anio <-
+  denuncias2021 %>%
+  select (anio, Forestal, Suelo, Agua, Aire, Vida.silvestre, Mineria) %>%
+  group_by ( anio) %>%
+  summarise (Forestal = sum (Forestal), Suelo = sum (Suelo), Agua = sum (Agua), VidaSilvestre = sum (Vida.silvestre), Mineria = sum (Mineria))
+
+denuncias_x_anio
+```
+
+
+```{r}
+denuncias_x_tipo <-
+  denuncias2021 %>%
+  select (afectado, denuncias) %>%
+  group_by (afectado) %>%
+  summarise (denuncias = sum (denuncias))
+
+denuncias_x_tipo
+```
+
+```{r}
+ggplot () + geom_col (
+  data = denuncias_x_tipo, 
+  aes (x = afectado, fill =  afectado, 
+      y = denuncias, fill = "denuncias"), width = 0.9) +
+  ggtitle ("Cantidad de denuncias según tipo para el periodo 2018-2019") +
+  xlab ("Tipo de denuncias") +
+  ylab ("Cantidad de denuncias") +
+  scale_fill_manual (values = c ("#0000FF", "#CDC0B0", "#458B00","#EEAD0E" ,"#8B7355", "#BF3EFF")) +
+  theme (
+    legend.title = element_blank(), legend.position = "left", plot.title = element_text (size = 13))
+```
+
+
+
