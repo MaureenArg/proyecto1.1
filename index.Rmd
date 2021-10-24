@@ -7,6 +7,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## paquetes
+
 ```{r paquetes, warning=FALSE, message=FALSE}
 library (DT)
 library (dplyr)
@@ -17,6 +19,10 @@ library (sf)
 library (ggplot2)
 library (plotly)
 ```
+
+
+
+## capas 
 
 ```{r datos, warning=FALSE, message=FALSE}
 provincias <-
@@ -39,8 +45,6 @@ cuencas <-
     quiet = TRUE
   )
 ```
-
-
 
 ```{r}
 altitud <-
@@ -66,12 +70,13 @@ denu_depu <-
 st_crs (denu_depu) <- 4326
 ```
 
+## tabla 
 
 ```{r}
 denu_depu %>%
   st_drop_geometry()%>%
   select (TIPO_den, año, TIPO_inf, CATEGORIA_) %>%
-    datatable (rownames= FALSE, filter= "top", class= "hover cell-border stripe", caption= "Tabla 1: Tipo de denuncias ambientales según año", colnames = c( "Tipo de denuncia", "Año", "Recurso afectado", "Categoría"), extensions = "Buttons", options = list (language = list (url = "//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json"),dom = "Bfrtip", buttons = c("csv", "excel", "pdf")))
+    datatable (rownames= FALSE, filter= "top", class= "hover cell-border stripe", caption= "Tabla 1: Tipo de denuncias ambientales según año", colnames = c( "Tipo de denuncia", "Año", "Detalle de la denuncia", "Categoría"), extensions = "Buttons", options = list (language = list (url = "//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json"),dom = "Bfrtip", buttons = c("csv", "excel", "pdf")))
                
 ```
 
@@ -80,31 +85,41 @@ denu_depu %>%
 ```{r}
 altitud_rl <- raster(altitud)
 leaflet() %>%
-  addTiles() %>%
+  addTiles (group = "OSM") %>%
+  addProviderTiles("Esri", group = "Esri") %>%
+  addProviderTiles("CartoDB", group = "CartoDB") %>%
   addRasterImage(
     altitud_rl, 
     opacity = 0.6
   ) %>% 
-  
    addPolygons(
-    data = cuencas,
+    data = cuencas,group = "Cuencas hidrográficas", 
     color = "black",
     fillColor = "blue",
     stroke = TRUE,
-    weight = 1.0,
+    weight = 1.0, popup = ~NOMBRE,
   ) %>%
+  
+  addPolygons(
+    data = provincias,group = "Provincias", 
+    color = "black",
+    fillColor = "Transparent",
+    stroke = TRUE, popup = ~provincia, 
+    weight = 1.0
+  ) %>%
+  
   addCircleMarkers(
     data = denu_depu,
     stroke = F,
     radius = 4,
     fillColor = 'red',
-    fillOpacity = 0.5
-  ) 
-  
+    fillOpacity = 0.5, popup = ~TIPO_inf,
+  ) %>%
+addLayersControl(baseGroups = c ("OSM", "Esri", "CartoDB", "Cuencas hidrográficas", "Provincias"))
 ```
 addProviderTiles(providers$Esri.WorldImagery, group = "Esri") %>%
 addLayersControl(baseGroups = c("OSM"))
-
+addProviderTiles(providers$Esri.WorldImagery)
 
 #Graficos 
 
@@ -123,6 +138,7 @@ denuncias_anio <-
   denuncias2021 %>%
    dplyr::count(anio)
 ```
+
 # Grafico barras
 
 ```{r}
@@ -156,6 +172,8 @@ denuncias_x_tipo <-
 
 denuncias_x_tipo
 ```
+
+## grafico ggplot
 
 ```{r}
 ggplot () + geom_col (
