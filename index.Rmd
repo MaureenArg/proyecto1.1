@@ -147,7 +147,7 @@ barplot(
   names.arg = denuncias_anio$anio,
   xlab= "Año",
   ylab= "Cantidad de denuncias",
-  main = "Cantidad de denuncias ambientales por año en Costa Rica",
+  main = "Cantidad de denuncias ambientales en Costa Rica (2018-2019)",
 )
 ```
 
