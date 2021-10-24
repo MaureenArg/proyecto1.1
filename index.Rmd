@@ -71,14 +71,12 @@ st_crs (denu_depu) <- 4326
 denu_depu %>%
   st_drop_geometry()%>%
   select (TIPO_den, año, TIPO_inf, CATEGORIA_) %>%
-    datatable (rownames= FALSE, filter= "top", class= "hover cell-border stripe", caption= "Tabla 1: Tipo de denuncias ambientales según año", colnames = c( "Tipo de denuncia", "Año", "Recurso afectado", "Categoría"), options = list (language = "//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json"))
+    datatable (rownames= FALSE, filter= "top", class= "hover cell-border stripe", caption= "Tabla 1: Tipo de denuncias ambientales según año", colnames = c( "Tipo de denuncia", "Año", "Recurso afectado", "Categoría"), extensions = "Buttons", options = list (language = list (url = "//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json"),dom = "Bfrtip", buttons = c("csv", "excel", "pdf")))
+               
 ```
 
+## mapa 
 
-
-
-
-extensions = "Buttons", options = list (dom = "Bfrtip", buttons= c("csv", "excel")),
 ```{r}
 altitud_rl <- raster(altitud)
 leaflet() %>%
@@ -87,6 +85,7 @@ leaflet() %>%
     altitud_rl, 
     opacity = 0.6
   ) %>% 
+  
    addPolygons(
     data = cuencas,
     color = "black",
@@ -99,9 +98,13 @@ leaflet() %>%
     stroke = F,
     radius = 4,
     fillColor = 'red',
-    fillOpacity = 1
-  )
+    fillOpacity = 0.5
+  ) 
+  
 ```
+addProviderTiles(providers$Esri.WorldImagery, group = "Esri") %>%
+addLayersControl(baseGroups = c("OSM"))
+
 
 #Graficos 
 
