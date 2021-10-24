@@ -187,6 +187,28 @@ ggplot () + geom_col (
   theme (
     legend.title = element_blank(), legend.position = "left", plot.title = element_text (size = 13))
 ```
+denuncias_anio %>%
+ filter (anio == 2018) %>%
+## grafico plotly
+
+```{r}
+  plot_ly( x=  c(2018,2019), y=  c(256,278), type= "bar", mode= "markers",
+   fill="tozeroy", color= I("blue")) %>%
+  layout (title= "Cantidad de denuncias ambientales por año", xaxis= list (title= "Año"), yaxis= list (title= "Cantidad de denuncias"))
+```
 
 
+```{r}
+Tipos <- c ("Agua", "Aire", "Forestal", "Mineria", "Suelo", "Vida Silvestre" )
+año2018 <- c (48,4,25,49,89,41)
+año2019 <- c (37,20,47,30,88,56)
+data <- data.frame (Tipos, año2018, año2019)
+```
+
+```{r}
+plot_ly (data, x= ~Tipos, y= ~año2018, type = "bar", name = "2018")%>%
+add_trace(y= ~año2019, name= "2019")%>%
+layout (yaxis= list(title="Cantidad"), barmode="group")%>%
+layout (title= "Cantidad de denuncias ambientales por año", xaxis= list (title= "Tipo de denuncia"), yaxis= list (title= "Cantidad de denuncias"))
+```
 
